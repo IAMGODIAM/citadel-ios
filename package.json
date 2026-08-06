@@ -1,0 +1,12 @@
+{
+  "name": "citadel-ios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CITADEL — E5's tower defense on Upland's real map. Signed iOS shell over the live domain.",
+  "dependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  },
+  "devDependencies": { "@capacitor/assets": "^3.0.5" }
+}

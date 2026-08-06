@@ -1,0 +1,56 @@
+workflows:
+  citadel-adhoc:
+    name: CITADEL Ad Hoc
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    environment:
+      groups:
+        - appstore_credentials
+        - citadel_publish
+      node: 20
+      xcode: latest
+      vars:
+        BUNDLE_ID: com.e5enclave.citadel
+    scripts:
+      - name: beacon start
+        script: 'curl -fsS -X PUT "$ST_URL" -H "Content-Type: text/plain" -d "stage 1: start $(date -u +%H:%M:%S)" || true'
+      - name: npm install
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 2: npm" || true
+          npm install
+      - name: cap add ios
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 3: cap add ios" || true
+          npx cap add ios
+      - name: icons
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 4: assets" || true
+          npx capacitor-assets generate --ios || true
+      - name: patch ios project
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 5: patch" || true
+          bash scripts/patch_ios.sh
+      - name: cap sync
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 6: sync" || true
+          npx cap sync ios
+      - name: signing
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 7: signing" || true
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" --type IOS_APP_ADHOC --certificate-key=@env:CERTIFICATE_PRIVATE_KEY --create
+          keychain add-certificates
+          xcode-project use-profiles
+      - name: build ipa
+        script: |
+          curl -fsS -X PUT "$ST_URL" -d "stage 8: xcodebuild" || true
+          xcode-project build-ipa --workspace ios/App/App.xcworkspace --scheme App 2>&1 | tee /tmp/xcode.log
+      - name: publish ipa
+        script: |
+          IPA=$(ls build/ios/ipa/*.ipa | head -1)
+          curl -fsS -X PUT --upload-file "$IPA" "$IPA_PUT_URL"
+          curl -fsS -X PUT "$ST_URL" -d "stage 9: IPA PUBLISHED $(date -u +%H:%M:%S)" || true
+    publishing:
+      scripts:
+        - name: always publish log
+          script: 'curl -fsS -X PUT --upload-file /tmp/xcode.log "$LOG_PUT_URL" || curl -fsS -X PUT "$ST_URL" -d "log upload failed" || true'

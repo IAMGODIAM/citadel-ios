@@ -1,0 +1,16 @@
+{
+  "appId": "com.e5enclave.citadel",
+  "appName": "CITADEL",
+  "webDir": "www",
+  "server": {
+    "url": "https://citadel.e5enclave.com",
+    "allowNavigation": [
+      "citadel.e5enclave.com",
+      "pub-1dfdb97841574c448cb7657c069dbdc6.r2.dev",
+      "static.upland.me",
+      "citadel-api.yisraelleemccartney.workers.dev",
+      "upland-terminal.yisraelleemccartney.workers.dev"
+    ]
+  },
+  "ios": { "contentInset": "never", "backgroundColor": "#0b0d14" }
+}
